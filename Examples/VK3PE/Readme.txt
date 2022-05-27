@@ -1,0 +1,1 @@
+Readme.txt -Please load this customized file "z_userprog.ino" into the directory "CIV_template" and overwrite by this the empty "z_userprog.ino"
