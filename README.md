@@ -1,5 +1,5 @@
 # CIV_template
-A sketch with lots of explanations and relatively few code to use the "CIVmasterLib" in an easy way
+A relatively small sketch with lots of explanations made for an easy use of "CIVmasterLib"
 
 This is a ready to run sketch with the master *.ino File named "CIV_template".
 Please make sure, that the files of this sketch are in a directory with the same name (i.e. 
