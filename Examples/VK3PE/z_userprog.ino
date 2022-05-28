@@ -4,8 +4,11 @@ CIV_template - z_userprog - adapted for the requirements of Glenn, VK3PE by DK8R
     Band select BCD outputs set to be active Hi.NOTE: a BCD to Decimal chip will be used also
      to provide 10 band outputs.
     PTT output is active LOW
+    Further details of hardware used, schematic etc will be on vk3pe webpage:
+         http://www.carnut.info/IC-705/ICOM_IC-705.html#BT   And updated from time to time.
 
-This is the part, where the user can put his own procedures in
+This is the part, where the user can put his own procedures in.  
+  This is currently setup for vk3pe "ESP TTGO" version.
 
 The calls to this user programs shall be inserted wherever it suits - search for //!//
 in all files
@@ -89,12 +92,17 @@ uint8_t         G_currentBand = NUM_BANDS;  // Band in use (default: not defined
 //=====================================================
 void  userPTT(uint8_t newState) {           
 
+#ifdef Inv_PTT 
+  digitalWrite (PTTpin,  !newState);    //--inverted-- output version:  Clr =Tx, Hi =Rx  
+  #else
+  digitalWrite (PTTpin,  newState);    // Clr =Rx, Hi =Tx   
+#endif 
+
 #ifdef debug
    Serial.println (newState);                     //prints '1' for Tx, '0' for Rx
 #endif
   tft.setFreeFont  ( &FreeSansBold9pt7b );        //previous setup text was smaller.
   //tft.setTextColor(WHITE) ;
-
    
 if (newState){                                    // '1' = Tx mode
   tft.setCursor(185, 95) ;   
@@ -109,12 +117,8 @@ else {
   tft.print("Rx") ;
 } //Rx mode
 
-#ifdef Inv_PTT 
-  digitalWrite (PTTpin,  !newState);    //--inverted-- output version:  Clr =Tx, Hi =Rx  
-  #else
-  digitalWrite (PTTpin,  newState);    // Clr =Rx, Hi =Tx   
-#endif 
-}
+
+}   //userPTT
 
 //=========================================================================================
 // creating bandinfo based on the frequency info
@@ -142,10 +146,10 @@ constexpr uint8_t band2BCD [NUM_BANDS+1] = {            //
 
   //-----------------------------------------------------------------------------------------
   // use these if want to use 160M to 6M band select outputs using 74HC32 BCD to Dec decoder.
-  // ie 160M will activate pin 1 on the 74HC42, etc to pin9 for 6M
+  // ie 160M will activate (Lo) pin 1 on the 74HC42, etc to pin9 for 6M
   //-----------------------------------------------------------------------------------------
   // 160    80        40     30     20     17     15     12     10      6  NDEF
-  0x00, 0x01,     0x02,  0x03,  0x04,  0x05,  0x06,  0x07,  0x08,  0x09, 0x00
+  0x00,    0x01,     0x02,  0x03,  0x04,  0x05,  0x06,  0x07,  0x08,  0x09, 0xff
 
 };
 
@@ -198,18 +202,16 @@ byte get_Band(unsigned long frq){
 }
 
 //------------------------------------------------------------------
-//    Show frequency in 'kHz' and band in 'Meters' text on TFT vk3pe
+//    Show band in 'Meters' text on TFT vk3pe
 //------------------------------------------------------------------
 void show_Meters(void)    
 {
 
-  // Show Freq[KHz]
+  // Show band
   tft.setCursor(10, 120) ;                //- 
   tft.fillRect(10, 90, 125, 40, BLUE) ;   //-erase   x,y,width, height 
   tft.setTextColor(WHITE) ;               //-
   tft.print (band2string[G_currentBand]); //-
-
-
 
 }
 
@@ -254,7 +256,7 @@ void set_PAbands(unsigned long frequency) {
   set_HW ( ~ band2BCD[G_currentBand] );
 #endif
 
-  show_Meters();            //Show frequency in kHz and band in Meters (80m etc) on TFT
+  show_Meters();            //Show band in Meters (80m etc) on TFT
 }
 
 //=========================================================================================
@@ -262,7 +264,7 @@ void set_PAbands(unsigned long frequency) {
 // this is available in the global variable "G_frequency" ...
 void userFrequency(unsigned long newFrequency) {
 
-  set_PAbands(G_frequency);
+  set_PAbands(newFrequency);
 
 }
 
