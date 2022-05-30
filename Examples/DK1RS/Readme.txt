@@ -1,3 +1,3 @@
 Readme.txt -Please load this customized file "z_userprog.ino" into the directory "CIV_template" and overwrite by this the empty "z_userprog.ino"
 
-For the HW part of this project please have a look at http://www.carnut.info/IC-705/ICOM_IC-705.html#BT
+Regardng the HW part of the project - please have a look on the qrz homepage of DK1RS   https://www.qrz.com/db/DK1RS
