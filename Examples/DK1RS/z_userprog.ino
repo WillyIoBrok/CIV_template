@@ -15,6 +15,9 @@ in all files
 //=========================================================================================
 // user part of the defines
 
+#define VERSION_USER "usrprg DK1RS V0_1 May 30th, 2022"
+
+
 #define NUM_BANDS 11   /* Number of Bands (depending on the radio) */
 
 // if defined, the bit pattern of the output pins is inverted in order to compensate
@@ -135,12 +138,14 @@ void  userPTT(uint8_t newState) {
 //=========================================================================================
 // this is called, whenever there is new frequency information ...
 void userFrequency(unsigned long newFrequency) {
-	set_PAbands(newFrequency)
+	set_PAbands(newFrequency);
 }
 
 //=========================================================================================
 // this will be called in the setup after startup
 void  userSetup(){
+
+  Serial.println (VERSION_USER);
 
   // set the used HW pins (see defines.h!) as output and set it to 0V (at the Input of the PA!!) initially
   pinMode       (P_BCD0, OUTPUT);
