@@ -11,6 +11,7 @@ in all files
 //=========================================================================================
 // user part of the defines
 
+#define VERSION_USER "usrprg empty V0_3 May 30th, 2022"
 
 
 //=========================================================================================
@@ -33,6 +34,9 @@ void userFrequency(unsigned long newFrequency) {
 //=========================================================================================
 // this will be called in the setup after startup
 void  userSetup(){
+
+  Serial.println (VERSION_USER);
+
   
 }
 
