@@ -6,6 +6,9 @@ Please make sure, that the files of this sketch are in a directory with the same
 "CIV_template") - otherwise Arduino won't open properly. After downloading from Github 
 it may be necessary to rename "CIV_template-main" or "CIV_template-xxx" to "CIV_template"
 
+Version 0.3 with the new "fastPTT" - mode has been uploaded May 30th, 22
+
+
 *********************************************
 
 LICENCE
