@@ -8,6 +8,17 @@ are down at the bottom of this file!
 
 */
 
+// additional CI-V commands, which are only available for IC 705 (and not officially supported by CIVmasterLib)
+#ifdef fastPTT
+
+constexpr uint8_t CIV_C_TXP[]    = {1,0x24};            // handle TX output power setting 00,00,00 = OFF, 00,00,01 = ON
+
+constexpr uint8_t CIV_D_TXP_ON[]  = {3,0x00,0x00,0x01};  // switch on TX output power setting:         00,00,01
+constexpr uint8_t CIV_D_TXP_EN[]  = {3,0x00,0x01,0x01};  // enable  "transceive" functionality of TXP: 00,01,01
+constexpr uint8_t CIV_D_TXP_DIS[] = {3,0x00,0x01,0x00};  // disable "transceive" functionality of TXP: 00,01,00
+
+#endif
+
 // Radio database procedures ==================================================================
 
 //---------------------------------------------------------------------------------------------
@@ -20,6 +31,19 @@ void  setRadioOnOff(radioOnOff_t newState) {
 
   if (G_radioOn!=newState){
     G_radioOn=newState;
+
+    #ifdef fastPTT
+      if (newState==RADIO_ON) { // enable the transceive function of the command "CIV_C_TXP"
+                                // only once after successful connection, therefore .. fire and forget
+        civ.writeMsg (civAddr,CIV_C_TXP,CIV_D_TXP_ON,CIV_wFast);
+//        delay (5);
+//        civ.writeMsg (civAddr,CIV_C_TXP,CIV_D_TXP_EN, CIV_wFast); // obviously not necessary ...
+//        civ.writeMsg (civAddr,CIV_C_TXP,CIV_D_TXP_DIS,CIV_wFast);
+        #ifdef debug
+          Serial.println ("TXPen");
+        #endif
+      }
+    #endif
 
     //!// put your code here, if you want to react on the change of ON/OFF ...
   
@@ -44,8 +68,9 @@ void setRXTX(uint8_t newState) {
   if (G_RXTX!=newState){
     G_RXTX=newState;
 
-    eval_delayMeas;       // debugging: calculate the time since the input trigger changed and print it out
-    
+    if (G_RXTX==1) { eval_delayMeas; }      // debugging: calculate the time since the input trigger changed and print it out
+//    eval_delayMeas;       // debugging: calculate the time since the input trigger changed and print it out
+
     userPTT(newState);    // call into z_userprog.ino ...
 
 
@@ -110,9 +135,12 @@ void  setModMode(radioModMode_t newModMode, radioFilter_t newRXfilter) {
 
 void  CIV_getProcessAnswers() {
 
-  // if a query request has taken place recently -> wait a bit in order to give the radio time!
-  if ( uint16_t(lpCnt-lp_CIVcmdSent) < lp_gapAfterquery ) return;
-
+  // only necessary in case of fast polling the RXTX state
+  #ifndef fastPTT
+    // if a query request has taken place recently -> wait a bit in order to give the radio time!
+    if ( uint16_t(lpCnt-lp_CIVcmdSent) < lp_gapAfterquery ) return;
+  #endif
+  
   CIVresultL = civ.readMsg(civAddr);
 
   if (CIVresultL.retVal<=CIV_NOK) { //--------------------------------- valid answer received !
@@ -124,10 +152,16 @@ void  CIV_getProcessAnswers() {
       // 1. check the "transceive" informations from the radio (i.e. the info which is 
       //    sent by the radio without query) e.g. when turning the VFO knob
 
-      if (CIVresultL.cmd[1]==CIV_C_F_SEND[1]) {   // operating frequency
+      #ifdef fastPTT
+        if (CIVresultL.cmd[1]==CIV_C_TXP[1]) {  // TX output power broadcast received
+          setRXTX(CIVresultL.datafield[3]);     // store it away and do whatever you want with that ...
+        }
+      #endif
+      
+      if (CIVresultL.cmd[1]==CIV_C_F_SEND[1]) {   // operating frequency broadcast
         setFrequency(CIVresultL.value);
       }
-      
+
       #ifdef modmode
       if (CIVresultL.cmd[1]==CIV_C_MOD_SEND[1]) { // ModMode
         setModMode(radioModMode_t(CIVresultL.datafield[1]),radioFilter_t(CIVresultL.datafield[2]));
@@ -140,7 +174,9 @@ void  CIV_getProcessAnswers() {
       if ((CIVresultL.cmd[1]==CIV_C_TX[1]) && 
           (CIVresultL.cmd[2]==CIV_C_TX[2])) { // (this is a 2 Byte command!)
         CIVwaitForAnswer  = false;
-        setRXTX(CIVresultL.datafield[1]);  // store it away and do whatever you want with that ...
+        #ifndef fastPTT
+          setRXTX(CIVresultL.datafield[1]);  // store it away and do whatever you want with that ...
+        #endif
       }
 
   //!//

@@ -41,12 +41,23 @@ Of course, this Sketch can also be used to control the radios - just add your co
 in "CiV_sendCmds()", but this has not been covered by this example yet (another example to come?).
 
 
+!!! New !!! 28.05.22   fastPTT !
+
+Thanks to the info from PU5VEN via VK3PE about one specific ICOM command, I have been able to implement
+a "fastPTT" mode !
+By this, the PTT delay from 80ms(average)..130ms could be reduced down to 10ms(average)..30ms! 
+This is much faster and in the range which the IC705 can compensate :-)
+
+So, the risk of blowing something up has decreased significantly, hi.
+However, this is all SW, so the Note below still applies ;-)
+
 Note: Please be careful if you want to use the RX/TX info as a PTT for PAs - the delay is
       pretty high, unfortunately - something between 12ms and 130ms! 
       The IC705 can only compensate 30ms.
       It is your own responsibility to ensure, that no damage occures to your radio or the PA 
       in the case, when the PTT change RX->TX comes later than the HF-power from the radio.
- 
+
+
 */
 
 // includes ---------------------------------------------------------------------
@@ -63,14 +74,18 @@ Note: Please be careful if you want to use the RX/TX info as a PTT for PAs - the
 // First, select the radio in use by commenting/uncommenting the matching lines ! 
 //!//
 
+//---------------------------------------
 //IC705 (via Bluetooth, default):
   #define useBT
+  #define fastPTT
   uint8_t civAddr = CIV_ADDR_705;
-
+//---------------------------------------
 //IC7300:
+//IC7300 doesn't support fastPTT !
 //  uint8_t civAddr = CIV_ADDR_7300;
-
+//---------------------------------------
 //IC9700:
+//  #define fastPTT
 //  uint8_t civAddr = CIV_ADDR_9700;
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -139,7 +154,7 @@ bool        CIVwaitForAnswer = false; // if true, a command has been sent to the
 
 radioOnOff_t    G_radioOn   = RADIO_NDEF; // don't know initially, whether the radio 
                                           // is switched on and connected
-bool            G_RXTX      = 0xff;       // 0 == RX; 1 == TX on
+bool            G_RXTX      = 0;          // 0 == RX; 1 == TX on
 unsigned long   G_frequency = 0;          // operating frequency in [Hz]
 uint8_t         G_Mod       = MOD_NDEF;   // Modulation mode (USB, LSB, etc...)
 uint8_t         G_RXfilter  = FIL_NDEF;   // RXfilter in use (Fil1, Fil2, Fil3);
@@ -157,12 +172,12 @@ uint16_t time_last_baseloop;          // will be updated at the end of every bas
 
 void setup() {
 
-  #ifdef debug                        // initialize the serial interface (for debug messages)
-    Serial.begin(debugBdRate);
-    Serial.println("");
-    delay(100);
-    Serial.println (VERSION_STRING);
-  #endif
+  // initialize the serial interface (for debug messages)
+  Serial.begin(debugBdRate);
+  Serial.println("");
+  delay(100);
+  Serial.println (VERSION_STRING);
+  
 
   // initialize the civ object/module (true means "use BT" in case of the ESP32)
   #ifdef useBT
