@@ -10,6 +10,7 @@ if you want to use one of the examples you need to copy the "z_userprog.ino" of 
 to the directory "CIV_template". By this, the originally empty "z_userprog.ino" will be overwritten.
 
 30th May 2022 Version 0.3 with the new "fastPTT" - mode
+
 31st May 2022 Version 0.4 Bugfix release + additional Version No. for the userprogs
 
 *********************************************
