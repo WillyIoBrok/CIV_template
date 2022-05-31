@@ -9,8 +9,8 @@ it may be necessary to rename "CIV_template-main" or "CIV_template-xxx" to "CIV_
 if you want to use one of the examples you need to copy the "z_userprog.ino" of the example 
 to the directory "CIV_template". By this, the originally empty "z_userprog.ino" will be overwritten.
 
-Version 0.3 with the new "fastPTT" - mode has been uploaded May 30th, 22
-
+30th May 2022 Version 0.3 with the new "fastPTT" - mode
+31st May 2022 Version 0.4 Bugfix release + additional Version No. for the userprogs
 
 *********************************************
 
