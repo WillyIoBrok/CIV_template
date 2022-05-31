@@ -49,10 +49,10 @@ By this, the PTT delay from 80ms(average)..130ms could be reduced down to 10ms(a
 This is much faster and in the range which the IC705 can compensate :-)
 
 So, the risk of blowing something up has decreased significantly, hi.
-However, this is all SW, so the Note below still applies ;-)
+However, this is all SW, so the note below still applies ;-)
 
 Note: Please be careful if you want to use the RX/TX info as a PTT for PAs - the delay is
-      pretty high, unfortunately - something between 12ms and 130ms! 
+      pretty high, unfortunately - something between 12ms and 130ms!  (fastPTT: 30ms max !)
       The IC705 can only compensate 30ms.
       It is your own responsibility to ensure, that no damage occures to your radio or the PA 
       in the case, when the PTT change RX->TX comes later than the HF-power from the radio.
@@ -62,11 +62,6 @@ Note: Please be careful if you want to use the RX/TX info as a PTT for PAs - the
 
 // includes ---------------------------------------------------------------------
 
-#include "a_defines.h"
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Please don't forget to set debug mode ON or OFF according your wishes in the
-// include file "a_defines.h" (default is debug mode ON) !
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #include <CIVmaster.h>  // CIVcmds.h will be included automatically in addition
 
@@ -88,7 +83,13 @@ Note: Please be careful if you want to use the RX/TX info as a PTT for PAs - the
 //  #define fastPTT
 //  uint8_t civAddr = CIV_ADDR_9700;
 
+
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// Please don't forget to set debug mode ON or OFF according your wishes in the
+// include file "a_defines.h" (default is debug mode ON) !
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#include "a_defines.h"
+
 
 //-------------------------------------------------------------------------------
 // create the civ object in use
@@ -126,18 +127,18 @@ possible return values (retVal_t):
 */
 
 // some control variables/timers:
-uint16_t    lpCnt = 0;           // loop counter; will be incremented every loop; 
-                                 // just to save RAM ... "uint16_t" instead of "unsigned long"
-                                 // by using the cast operator "uint16_t(..)" it is working
-                                 // also after a wrap around (approx. 10 .. 12 min)
 
-uint16_t    lp_CIVcmdSent = 0;   // loop number of the last command sent 
+// with these timestamps time differences of up to 65535 ms == 1min 5,5sec max. can be handled
+
+// uint16_t is used here in order to save RAM space (because of the small Atmel processors)
+
+uint16_t    ts_CIVcmdSent = 0;   // time stamp[ms] of the last command sent 
                                  // this is common for all commands, the last wins !
                                  // used for determining the timeout
-uint16_t    lp_RXTX_sent  = 0;   // loop number of the last RXTX query sent to the radio
-uint16_t    lp_f_sent     = 0;   // loop number of the last frequency query sent to the radio
+uint16_t    ts_RXTX_sent  = 0;   // time stamp[ms] of the last RXTX query sent to the radio
+uint16_t    ts_f_sent     = 0;   // time stamp[ms] of the last frequency query sent to the radio
 #ifdef modmode
-uint16_t    lp_Mod_sent   = 0;   // loop number of the last ModMode query sent to the radio
+uint16_t    ts_Mod_sent   = 0;   // time stamp[ms] of the last ModMode query sent to the radio
 #endif
 //!// put here additional timers in case you are adding additional queries
 
@@ -163,8 +164,8 @@ uint8_t         G_RXfilter  = FIL_NDEF;   // RXfilter in use (Fil1, Fil2, Fil3);
 
 
 // timer  variables -------------------------------------------------------------
-uint16_t time_current_baseloop;       // temporary time of the baseloop entry for calculations
-uint16_t time_last_baseloop;          // will be updated at the end of every baseloop run
+uint16_t t_curr_lp;       // temporary time of the current baseloop (at the beginning) for calculations
+uint16_t ts_last_lp;      // time stamp - will be updated at the end of every baseloop run
 
 //=============================================================================================
 
@@ -189,14 +190,15 @@ void setup() {
   // tell civ, which address of the radio is to be used
   civ.registerAddr(civAddr);
 
+// note: in fastPTT mode this may be significantly slower, since it doesn't influence the PTT delay in this case
   init_delayMeas; // debugging on ESP32: setup the PTT delay measurement
 
   //!// put your setup code (independent from civ) here ... or put it into file z_userprog.ino
   userSetup();
 
   // initialise the baseloop timers ...
-  time_current_baseloop = millis();
-  time_last_baseloop = time_current_baseloop;
+  t_curr_lp = millis();
+  ts_last_lp = t_curr_lp;
   
 }
 
@@ -204,12 +206,12 @@ void setup() {
 
 void loop() {
 
-  time_current_baseloop = millis();
+  t_curr_lp = millis();
   
-  if (uint16_t(time_current_baseloop - time_last_baseloop) >= BASELOOP_TICK) {
-  // payload ------------------------------------------------------
+  if (uint16_t(t_curr_lp - ts_last_lp) >= BASELOOP_TICK) {
+    // payload ------------------------------------------------------
 
-    set_delayMeas;  // debugging om ESP32: check the trigger input and store the time when input changes
+    set_delayMeas;  // debugging on ESP32: check the trigger input and store the time when input changes
 
     // first, read and process the answers from the radio (if available)
     CIV_getProcessAnswers();
@@ -223,9 +225,8 @@ void loop() {
     //!// put your base loop code (independent from civ) here ... or put it into file z_userprog.ino
     userBaseLoop();
 
-  // payload ------------------------------------------------------
-    lpCnt++;
-    time_last_baseloop = time_current_baseloop;
+    // payload ------------------------------------------------------
+    ts_last_lp = t_curr_lp;
 	} // if BASELOOP_TICK
   
 } // end loop

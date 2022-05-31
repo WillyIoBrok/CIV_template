@@ -25,6 +25,8 @@ in all files
 #define Inv_PTT           //if active, PTT out is Low going.
 
 
+#define VERSION_USER "usrprg VK3PE V0_3 May 31st, 2022"
+
 #define NUM_BANDS 10   /* Number of Bands (depending on the radio) */
 
 //-----------------------------------------------------------------------------------------
@@ -300,6 +302,8 @@ void init_TFT(void)
 //=========================================================================================
 // this will be called in the setup after startup
 void  userSetup(){
+
+  Serial.println (VERSION_USER);
 
   // set the used HW pins (see defines.h!) as output and set it to 0V (at the Input of the PA!!) initially
 

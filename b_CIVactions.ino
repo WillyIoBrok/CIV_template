@@ -19,6 +19,10 @@ constexpr uint8_t CIV_D_TXP_DIS[] = {3,0x00,0x01,0x00};  // disable "transceive"
 
 #endif
 
+/*!*/
+uint16_t t_curr_last;
+
+
 // Radio database procedures ==================================================================
 
 //---------------------------------------------------------------------------------------------
@@ -90,9 +94,9 @@ void  setFrequency(unsigned long newFrequency) {
     G_frequency=newFrequency;
 
     userFrequency(newFrequency);  // call into z_userprog.ino ...
-
+    
     #ifdef debug
-      Serial.println(newFrequency);
+      Serial.print("f:"); Serial.println(newFrequency);
     #endif
   }
   
@@ -135,10 +139,10 @@ void  setModMode(radioModMode_t newModMode, radioFilter_t newRXfilter) {
 
 void  CIV_getProcessAnswers() {
 
-  // only necessary in case of fast polling the RXTX state
+  // not necessary in case of fastPTT (necessary at all?)
   #ifndef fastPTT
     // if a query request has taken place recently -> wait a bit in order to give the radio time!
-    if ( uint16_t(lpCnt-lp_CIVcmdSent) < lp_gapAfterquery ) return;
+    if ( uint16_t(t_curr_lp-ts_CIVcmdSent) <= t_gapAfterquery ) return;
   #endif
   
   CIVresultL = civ.readMsg(civAddr);
@@ -217,7 +221,7 @@ void  CIV_getProcessAnswers() {
   } // end valid answer received
   else { //------------------------------------------------------------ no answer received
     if ( CIVwaitForAnswer &&                                        // still waiting for answer
-         (uint16_t(lpCnt - lp_CIVcmdSent) > lp_waitForAnswer)       // -> timeout !
+         (uint16_t(t_curr_lp - ts_CIVcmdSent) >= t_waitForAnswer)       // -> timeout !
        ) {
        CIVwaitForAnswer = false;
        setRadioOnOff(RADIO_OFF);  // radio is not available, probably off 
@@ -233,13 +237,20 @@ void  CIV_sendCmds() {
 
   // do the RXTX poll (independent whether the radio is connected or not) .....................
   // by this, also the radioON/OFF state can be checked
-  if (uint16_t(lpCnt-lp_RXTX_sent) > lp_RXTXquery) { // it's time to ask the radio
+  if (uint16_t(t_curr_lp-ts_RXTX_sent) >= t_RXTXquery) { // it's time to ask the radio
 
     if (CIVwaitForAnswer==false) { // ask only, if we currently are not waiting for the radio
       civ.writeMsg (civAddr,CIV_C_TX,CIV_D_NIX,CIV_wFast);
       CIVwaitForAnswer  = true;
-      lp_CIVcmdSent     = lpCnt;  // store the time (loopnumber) of the query
-      lp_RXTX_sent      = lpCnt; 
+
+/*!*/
+//Serial.print(t_curr_lp); Serial.print("  ");Serial.println(uint16_t(t_curr_lp-t_curr_last));
+//t_curr_last = t_curr_lp;
+
+
+        
+      ts_CIVcmdSent     = t_curr_lp;  // store the time of the query
+      ts_RXTX_sent      = t_curr_lp; 
     }
 
   }
@@ -257,25 +268,25 @@ void  CIV_sendCmds() {
 
 
     // slow poll of the frequency, just to be on the safe side .................................
-    if (uint16_t(lpCnt - lp_f_sent) > lp_slowQuery) {  // ask the radio
+    if (uint16_t(t_curr_lp - ts_f_sent) >= t_slowQuery) {  // ask the radio
 
       if (CIVwaitForAnswer==false) { // ask only, if we currently are not waiting for the radio
         civ.writeMsg (civAddr,CIV_C_F_READ,CIV_D_NIX,CIV_wFast);
         CIVwaitForAnswer  = true;
-        lp_CIVcmdSent     = lpCnt;  // store the time (loopnumber) of the query
-        lp_f_sent         = lpCnt; 
+        ts_CIVcmdSent     = t_curr_lp;  // store the time of the query
+        ts_f_sent         = t_curr_lp; 
       }
 
     }
     #ifdef modmode
     // slow poll of the ModMode, just to be on the safe side ..................................
-    if (uint16_t(lpCnt - lp_Mod_sent) > lp_slowQuery) {  // ask the radio
+    if (uint16_t(t_curr_lp - ts_Mod_sent) >= t_slowQuery) {  // ask the radio
 
       if (CIVwaitForAnswer==false) { // ask only, if we currently are not waiting for the radio
         civ.writeMsg (civAddr,CIV_C_MOD_READ,CIV_D_NIX,CIV_wFast);
         CIVwaitForAnswer  = true;
-        lp_CIVcmdSent     = lpCnt;  // store the time (loopnumber) of the query
-        lp_Mod_sent       = lpCnt;
+        ts_CIVcmdSent     = t_curr_lp;  // store the time of the query
+        ts_Mod_sent       = t_curr_lp;
       }
 
     }

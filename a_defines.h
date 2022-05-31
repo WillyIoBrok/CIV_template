@@ -5,7 +5,7 @@
 CIV_template - a_Defines.h / general definitions
 */
 
-#define VERSION_STRING "CIV_template V0_3 May 28th, 2022"
+#define VERSION_STRING "CIV_template V0_4 May 31st, 2022"
 
 // if defined, debug messages on the serial line will be generated
 // default: active, i.e.uncommented
@@ -40,35 +40,29 @@ CIV_template - a_Defines.h / general definitions
 //------------------------------------------------------------------------------------------------------------
 // times and timers ...
 
-// repetition rate of the base loop, i.e. every 10ms an action can/will be taken
-#define BASELOOP_TICK 10 
+// repetition rate of the base loop in ms, i.e. every 10ms an action can/will be taken
+#define BASELOOP_TICK 10
+// note: you can reduce the PTT delay down to 15ms max in fastPTT mode, if you set BASELOOP_TICK to 5ms
+//#define BASELOOP_TICK 5
 
 // this is the maximum time in ms which the radio may take for answering a query
 #define t_waitForAnswer 900
-// the same in "loop runs" ...
-#define lp_waitForAnswer (t_waitForAnswer/BASELOOP_TICK)
 
 // this is the polling time in ms for the RXTX query
-// note: in fastPTT mode this may be significantly slower, since it doesn't influence the PTT delay in this case
+// in case of fastPTT in may be significantly longer, since it has no influence on the PTT delay !
 #ifdef fastPTT
-  #define t_RXTXquery 230
+  #define t_RXTXquery 370
 #else
   #define t_RXTXquery 80
 #endif
-// the same in "loop runs" ...
-#define lp_RXTXquery (t_RXTXquery/BASELOOP_TICK)
 
 // this is the polling time in ms for the slow poll queries of frequency, ModMode
 #define t_slowQuery 1000
-// the same in "loop runs" ...
-#define lp_slowQuery (t_slowQuery/BASELOOP_TICK)
 
 // this is the waiting time after sending a command before processing an answer 
 // only necessary in case of fast polling the RXTX state
 #ifndef fastPTT
   #define t_gapAfterquery 20
-  // the same in "loop runs" ...
-  #define lp_gapAfterquery (t_gapAfterquery/BASELOOP_TICK)
 #endif
 
 //------------------------------------------------------------------------------------------------------------

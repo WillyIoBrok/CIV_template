@@ -15,21 +15,27 @@ in all files
 //=========================================================================================
 // user part of the defines
 
-#define VERSION_USER "usrprg DK1RS V0_1 May 30th, 2022"
+#define VERSION_USER "usrprg DK1RS V0_2 May 30th, 2022"
 
 
 #define NUM_BANDS 11   /* Number of Bands (depending on the radio) */
 
 // if defined, the bit pattern of the output pins is inverted in order to compensate
 // the effect of inverting HW drivers (active, i.e.uncommented by default)
-#define invDriver 
+#define invDriver       //if active, inverts band BCD out
+#define inv_PTT         //if active, PTT out is Low going.
 
 // Mapping of portpins to function ===========================================================================
 
+// for ESP32!
+// digital control lines of LPF
 #define P_BCD0            33
 #define P_BCD1            25
 #define P_BCD2            26
 #define P_BCD3            27
+
+//PTT out pin
+#define P_PTT             12
 
 //=========================================================================================
 // user part of the database
@@ -132,6 +138,12 @@ void set_PAbands(unsigned long frequency) {
 //=========================================================================================
 // this is called, when the RX/TX state changes ...
 void  userPTT(uint8_t newState) {
+
+  #ifdef Inv_PTT 
+    digitalWrite (P_PTT,  !newState);   //--inverted-- output version:  Clr =Tx, Hi =Rx  
+  #else
+    digitalWrite (P_PTT,  newState);    // Clr =Rx, Hi =Tx
+  #endif 
   
 }
 
