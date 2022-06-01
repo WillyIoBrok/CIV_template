@@ -15,7 +15,7 @@ in all files
 //=========================================================================================
 // user part of the defines
 
-#define VERSION_USER "usrprg DK1RS V0_2 May 30th, 2022"
+#define VERSION_USER "usrprg DK1RS V0_3 June 1st, 2022"
 
 
 #define NUM_BANDS 11   /* Number of Bands (depending on the radio) */
@@ -140,9 +140,9 @@ void set_PAbands(unsigned long frequency) {
 void  userPTT(uint8_t newState) {
 
   #ifdef Inv_PTT 
-    digitalWrite (P_PTT,  !newState);   //--inverted-- output version:  Clr =Tx, Hi =Rx  
+    digitalWrite (P_PTT,  !newState);   //--inverted-- output version:  Clr = Tx, Hi = Rx  
   #else
-    digitalWrite (P_PTT,  newState);    // Clr =Rx, Hi =Tx
+    digitalWrite (P_PTT,  newState);    // Clr = Rx, Hi = Tx
   #endif 
   
 }
@@ -158,6 +158,10 @@ void userFrequency(unsigned long newFrequency) {
 void  userSetup(){
 
   Serial.println (VERSION_USER);
+
+  // initialize the PTT-pin as RX !
+	pinMode (P_PTT, OUTPUT);
+  userPTT(0);
 
   // set the used HW pins (see defines.h!) as output and set it to 0V (at the Input of the PA!!) initially
   pinMode       (P_BCD0, OUTPUT);
