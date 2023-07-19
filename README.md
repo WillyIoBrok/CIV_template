@@ -10,7 +10,7 @@ Please make sure, that the files of this sketch are in a directory with the same
 "CIV_template") - otherwise Arduino won't open properly. After downloading from Github 
 it may be necessary to rename "CIV_template-main" or "CIV_template-xxx" to "CIV_template"
 
-if you want to use one of the examples you need to copy the "z_userprog.ino" of the example 
+if you want to use one of the examples you need to copy the "z_userprog.ino" of the example (e.g. from VK3PE)
 to the directory "CIV_template". By this, the originally empty "z_userprog.ino" will be overwritten.
 
 30th May 2022 Version 0.3 with the new "fastPTT" - mode
