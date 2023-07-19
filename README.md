@@ -1,6 +1,10 @@
 # CIV_template
 A relatively small sketch with lots of explanations made for an easy use of "CIVmasterLib"
 
+NOTE: 
+Before using this sketch, you have to install "CIVmasterLib" which can be found under
+https://github.com/WillyIoBrok/CIVmasterLib
+
 This is a ready to run sketch with the master *.ino File named "CIV_template".
 Please make sure, that the files of this sketch are in a directory with the same name (i.e. 
 "CIV_template") - otherwise Arduino won't open properly. After downloading from Github 
